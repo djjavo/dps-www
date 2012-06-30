@@ -32,8 +32,8 @@ ul.jqueryFileTree A:hover {
 .jqueryFileTree li.wait { background: url(../images/icons/spinner.gif) left top no-repeat; }
 /* File Extensions*/
 .jqueryFileTree li.ext_music { background: url(../images/icons/music.png) left top no-repeat; }
-.jqueryFileTree li.ext_jingle { background: url(../images/icons/music.png) left top no-repeat; }
-.jqueryFileTree li.ext_advert { background: url(../images/icons/music.png) left top no-repeat; }
+.jqueryFileTree li.ext_jingle { background: url(../images/icons/jingle.png) left top no-repeat; }
+.jqueryFileTree li.ext_advert { background: url(../images/icons/jingle.png) left top no-repeat; }
 .jqueryFileTree li.ext_aw_set { background: url(../images/icons/aw_set.png) left top no-repeat; }
 .jqueryFileTree li.ext_script { background: url(../images/icons/script.png) left top no-repeat; }
 .jqueryFileTree li.ext_showplan { background: url(../images/icons/showplan.png) left top no-repeat; }
