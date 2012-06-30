@@ -2,19 +2,21 @@
 require_once('pre.php');
 Output::set_template();
 
-$dir = VirtualDirectories::get_by_id($_POST['dir']);
+$dir = FilesFolders::get_by_id($_REQUEST['dir']);
 
-$child_folders = $dir->get_child_folders();
-//$files = $dir->get_files();
+$children = $dir->get_children();
 
 echo("<ul class=\"jqueryFileTree\" style=\"display: none\">");
 
-foreach($child_folders as $child) {
-	echo("<li class=\"directory collapsed\"><a href=\"#\" rel=\"".$child->get_id()."\">".$child->get_name()."</a></li>");
-}
-
-foreach($files as $file) {
-	echo("<li class=\"directory collapsed\"><a href=\"#\" rel=\"".$file->get_id()."\">".$file->get_name()."</a></li>");
+foreach($children as $child) {
+	switch($child->get_itemtype()) {
+		case "dir":
+			echo("<li class=\"directory collapsed\"><a href=\"#\" rel=\"".$child->get_id()."\">".$child->get_name()."</a></li>");
+			break;
+		default:
+			echo("<li class=\"file ext_".$child->get_itemtype()."\"><a href=\"#\" rel=\"".$child->get_id()."\">".$child->get_name()."</a></li>");
+			break;
+		}
 }
 
 echo("</ul>");

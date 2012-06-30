@@ -16,7 +16,7 @@ MainTemplate::set_subtitle("Browse and upload files to the system");
 
 echo("
 <div class=\"row\">
-	<div class=\"span6 pull-right\">
+	<div class=\"span6 pull-right\" style=\"height: 600px; overflow: auto; border-left: 1px solid #eee; padding-left: 10px; \">
 		<div id=\"file-tree\">
 		</div>
 	</div>
