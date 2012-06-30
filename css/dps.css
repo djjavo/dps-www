@@ -16,6 +16,7 @@ body {
   background-image: -khtml-gradient(linear, left top, left bottom, from(#015769), to(#01A6C9));
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#015769', endColorstr='#01A6C9', GradientType=0); /* IE8 and down */
 }
+
 .intro {
   background: transparent url(../images/template/grid-18px.png) top center;
   padding: 45px 0;
@@ -89,7 +90,10 @@ body {
   margin-bottom:10px;
 }
 
-.login-form { margin-left: -70px ; margin-top: -20px; }
+table .icon { width: 16px; }
+.hover-info { display: none; white-space: nowrap;}
+
+.login-form { margin-left: -80px ; margin-top: -20px; }
 
 .footer {
   background-color: #eee;
@@ -103,4 +107,15 @@ body {
 */}
 .footer p {
   color: #555;
+}
+
+.dropdown-menu li {
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.popover-inner {
+  min-width: 280px;
 }

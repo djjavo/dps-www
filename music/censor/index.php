@@ -21,8 +21,8 @@ echo("<script>
 MainTemplate::set_subtitle("Heard some naughty words? Censor tracks so their playout is restricted");
 
 if($_REQUEST["censor"]) {
-	if(!Session::is_group_user("music_admin")) {
-		echo AlertMessage::basic("error","You are trying to censor a track, but you do not have the requred privelidges!","Error!");
+	if(!Session::is_group_user("Music Admin")) {
+		echo AlertMessage::basic("error","You are trying to censor a track, but you do not have the required privileges!","Error!");
 	} else {
 		$track = Tracks::get_by_id($_REQUEST["censor"]);
 		if($track) {
@@ -36,8 +36,8 @@ if($_REQUEST["censor"]) {
 }
 
 if($_REQUEST["uncensor"]) {
-	if(!Session::is_group_user("music_admin")) {
-		echo AlertMessage::basic("error","You are trying to uncensor a track, but you do not have the requred privelidges!","Error!");
+	if(!Session::is_group_user("Music Admin")) {
+		echo AlertMessage::basic("error","You are trying to uncensor a track, but you do not have the required privileges!","Error!");
 	} else {
 		$track = Tracks::get_by_id($_REQUEST["uncensor"]);
 		if($track) {
@@ -50,8 +50,8 @@ if($_REQUEST["uncensor"]) {
 }
 
 if($_REQUEST["unflag"]) {
-	if(!Session::is_group_user("music_admin")) {
-		echo AlertMessage::basic("error","You are trying to unflag a track, but you do not have the requred privelidges!","Error!");
+	if(!Session::is_group_user("Music Admin")) {
+		echo AlertMessage::basic("error","You are trying to unflag a track, but you do not have the required privileges!","Error!");
 	} else {
 		$track = Tracks::get_by_id($_REQUEST["unflag"]);
 		if($track) {
@@ -64,16 +64,16 @@ if($_REQUEST["unflag"]) {
 }
 
 echo("<h2>Flagged for Censorship</h2>");
-echo("<strong>To flag a track for censorship, search for it in the music library, click the <img src=\"".SITE_LINK_REL."images/icons/information.png\" style=\"position:relative; top: 3px;\" /> and click the \"Flag for censorship\" button.</strong>");
+echo("<strong>To flag a track for censorship, search for it in the music library, click the <i class=\"icon-info-sign\"></i> and click the \"Flag for censorship\" button.</strong>");
 if($flagged = Tracks::get_flagged()) {
 	echo("
-<table class=\"condensed-table zebra-striped\" cellspacing=\"0\">
+<table class=\"table table-striped\" cellspacing=\"0\">
 	<thead>
 		<tr>
 			<th class=\"icon\"></th>
 			<th class=\"artist\">Artist</th>
 			<th class=\"title\">Title</th>
-			".(Session::is_group_user("music_admin")? "
+			".(Session::is_group_user("Music Admin")? "
 			<th class=\"icon\"></th>" : "")."
 		</tr>
 	</thead>");
@@ -82,13 +82,13 @@ if($flagged = Tracks::get_flagged()) {
 	<tr id=\"".$flag->get_id()."\">
 		<td class=\"icon\">
 			<a href=\"".SITE_LINK_REL."music/detail/".$flag->get_id()."\" class=\"track-info\">
-				<img src=\"".SITE_LINK_REL."images/icons/information.png\">
+				<i class=\"icon-info-sign\"></i>
 			</a>
 			<div class=\"hover-info\">
 				<strong>Artist:</strong> ".$flag->get_artists_str()."<br />
 				<strong>Album:</strong> ".$flag->get_album()->get_name()."<br />
 				<strong>Year:</strong> ".$flag->get_year()."<br />
-				<strong>Length:</strong> ".$flag->get_length_formatted()."<br />
+				<strong>Length:</strong> ".Time::format_succinct($flag->get_length())."<br />
 				<strong>Origin:</strong> ".$flag->get_origin()."<br />
 				".($flag->get_reclibid()? "<strong>Reclib ID:</strong> ".$flag->get_reclibid()."<br />" : "")."
 				<strong>On Sue:</strong> ".($flag->is_sustainer()? "Yes" : "No")."<br />
@@ -96,9 +96,9 @@ if($flagged = Tracks::get_flagged()) {
 		</td>
 		<td class=\"artist\">".$flag->get_artists_str()."</td>
 		<td class=\"title\">".$flag->get_title()."</td>
-		".(Session::is_group_user("music_admin")? "
-		<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?censor=".$flag->get_id()."\" class=\"censor\" title=\"Approve censorship\" rel=\"twipsy\"><img src=\"".SITE_LINK_REL."images/icons/tick.png\" alt=\"Approve censorship\"></td>
-		<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?unflag=".$flag->get_id()."\" class=\"unflag\" title=\"Remove flag\" rel=\"twipsy\"><img src=\"".SITE_LINK_REL."images/icons/cross.png\" alt=\"Remove flag\"></td>" : "")."
+		".(Session::is_group_user("Music Admin")? "
+		<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?censor=".$flag->get_id()."\" class=\"censor\" title=\"Approve censorship\" rel=\"twipsy\"><i class=\"icon-ok-sign\"></i></td>
+		<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?unflag=".$flag->get_id()."\" class=\"unflag\" title=\"Remove flag\" rel=\"twipsy\"><i class=\"icon-remove-sign\"></td>" : "")."
 	</tr>");
 	}
 	echo("
@@ -125,13 +125,13 @@ if($censored = Tracks::get_censored($limit,(($page-1)*$limit))) {
 
 	echo("
 <h2>Censored Tracks</h2>
-<table class=\"condensed-table zebra-striped\" cellspacing=\"0\">
+<table class=\"table table-striped\" cellspacing=\"0\">
 	<thead>
 		<tr>
 			<th class=\"icon\"></th>
 			<th class=\"artist\">Artist</th>
 			<th class=\"title\">Title</th>
-			".(Session::is_group_user("music_admin")? "
+			".(Session::is_group_user("Music Admin")? "
 			<th class=\"icon\"></th>" : "")."
 		</tr>
 	</thead>");
@@ -140,13 +140,13 @@ if($censored = Tracks::get_censored($limit,(($page-1)*$limit))) {
 	<tr id=\"".$censor->get_id()."\">
 		<td class=\"icon\">
 			<a href=\"".SITE_LINK_REL."music/detail/".$censor->get_id()."\" class=\"track-info\">
-				<img src=\"".SITE_LINK_REL."images/icons/information.png\">
+				<i class=\"icon-info-sign\"></i>
 			</a>
 			<div class=\"hover-info\">
 				<strong>Artist:</strong> ".$censor->get_artists_str()."<br />
 				<strong>Album:</strong> ".$censor->get_album()->get_name()."<br />
 				<strong>Year:</strong> ".$censor->get_year()."<br />
-				<strong>Length:</strong> ".$censor->get_length_formatted()."<br />
+				<strong>Length:</strong> ".Time::format_succinct($censor->get_length())."<br />
 				<strong>Origin:</strong> ".$censor->get_origin()."<br />
 				".($censor->get_reclibid()? "<strong>Reclib ID:</strong> ".$censor->get_reclibid()."<br />" : "")."
 				<strong>On Sue:</strong> ".($censor->is_sustainer()? "Yes" : "No")."<br />
@@ -154,7 +154,7 @@ if($censored = Tracks::get_censored($limit,(($page-1)*$limit))) {
 		</td>
 		<td class=\"artist\">".$censor->get_artists_str()."</td>
 		<td class=\"title\">".$censor->get_title()."</td>
-		".(Session::is_group_user("music_admin")? "<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?uncensor=".$censor->get_id()."\" class=\"uncensor\" title=\"Uncensor this track\" rel=\"twipsy\"><img src=\"".SITE_LINK_REL."images/icons/cross.png\" alt=\"Uncensor this track\"></td>" : "")."
+		".(Session::is_group_user("Music Admin")? "<td class=\"icon\"><a href=\"".SITE_LINK_REL."music/censor/?uncensor=".$censor->get_id()."\" class=\"uncensor\" title=\"Uncensor this track\" rel=\"twipsy\"><i class=\"icon-remove-sign\"></i></td>" : "")."
 	</tr>");
 	}
 	echo("

@@ -5,17 +5,19 @@ Output::add_stylesheet(SITE_LINK_REL."css/music.css");
 Output::add_script(SITE_LINK_REL."js/bootstrap-popover.js");
 
 $query = $_REQUEST['q'];
+$index = (isset($_REQUEST['i'])? $_REQUEST["i"] : "title artist album");
 $limit = (isset($_GET['n']))? $_GET['n'] : 10;
 $page = ($_REQUEST['p']? $_REQUEST['p'] : 1);
 
 MainTemplate::set_subtitle("Find a track in the database, edit track details");
-if($query) $search = Search::tracks($query,$limit,(($page-1)*$limit));
+if($query) $search = Search::tracks($query,$index,$limit,(($page-1)*$limit));
 $tracks = $search["results"];
 
 if($tracks) {
 	$pages = new Paginator;
 	$pages->items_per_page = $limit;
 	$pages->querystring = $query;
+	$pages->index = $index;
 	$pages->mid_range = 5;
 	$pages->items_total = $search["total"];
 	$pages->paginate();
@@ -37,9 +39,10 @@ if($tracks) {
 		});
 	</script>");
 
-	echo("<h2>".$search["total"]." results for ".$query."</h2>");
-	echo("<div class=\"row\"><div class=\"span8\"><h4>Showing results ".$low." to ".$high."</h4></div><div class=\"span4\">".$pages->display_jump_menu().$pages->display_items_per_page()."</div></div>");
-	echo("<table class=\"zebra-striped\" cellspacing=\"0\">
+	$indexes = implode(", ", explode(" ", $index));
+	echo("<h2>".$search["total"]." results for ".$query."<small> searching in ".$indexes."</small></h2>");
+	echo("<div class=\"row\"><div class=\"span5\"><h4>Showing results ".$low." to ".$high."</h4></div><div class=\"pull-right\">".$pages->display_jump_menu().$pages->display_items_per_page()."</div></div>");
+	echo("<table class=\"table table-striped\" cellspacing=\"0\">
 	<thead>
 		<tr>
 			<th class=\"icon\"> </th>
@@ -48,7 +51,7 @@ if($tracks) {
 			<th class=\"album\">Album</th>
 			<th class=\"length\">Length</th> 
 			<th class=\"icon\"></th>
-			".((Session::is_admin() || Session::is_group_user("music_admin"))? "<th class=\"icon\"></th>" : "")."
+			".((Session::is_admin() || Session::is_group_user("Music Admin"))? "<th class=\"icon\"></th>" : "")."
 		</tr>
 	</thead>");
 	foreach($tracks as $track_id) {
@@ -63,13 +66,13 @@ if($tracks) {
 		<tr>
 			<td class=\"icon\">
 				<a href=\"".SITE_LINK_REL."music/detail/".$track->get_id()."\" class=\"track-info\">
-					<img src=\"".SITE_LINK_REL."images/icons/information.png\">
+					<i class=\"icon-info-sign\"></i>
 				</a>
 				<div class=\"hover-info\">
 					<strong>Artist:</strong> ".$artist_str."<br />
 					<strong>Album:</strong> ".$track->get_album()->get_name()."<br />
 					<strong>Year:</strong> ".$track->get_year()."<br />
-					<strong>Length:</strong> ".$track->get_length_formatted()."<br />
+					<strong>Length:</strong> ".Time::format_succinct($track->get_length())."<br />
 					<strong>Origin:</strong> ".$track->get_origin()."<br />
 					".($track->get_reclibid()? "<strong>Reclib ID:</strong> ".$track->get_reclibid()."<br />" : "")."
 					<strong>On Sue:</strong> ".($track->is_sustainer()? "Yes" : "No")."<br />
@@ -79,9 +82,9 @@ if($tracks) {
 			<td class=\"artist\">".$artist_str."</td>
 			<td class=\"title\">".$track->get_title()."</td>
 			<td class=\"album\">".$album."</td>
-			<td class=\"length\">".$track->get_length_formatted()."</td>
-			<td class=\"icon\"><a href=\"preview/".$track->get_id()."\" class=\"track-preview\" title=\"Preview this track\" rel=\"twipsy\"><img src=\"".SITE_LINK_REL."images/icons/sound.png\"></td>
-			".((Session::is_admin() || Session::is_group_user("music_admin"))? "<td class=\"icon\"><a href=\"delete/".$track->get_id()."\" class=\"track-delete\" title=\"Delete this track\" rel=\"twipsy\"><img src=\"".SITE_LINK_REL."images/icons/delete.png\"></td>" : "")."
+			<td class=\"length\">".Time::format_succinct($track->get_length())."</td>
+			<td class=\"icon\"><a href=\"preview/".$track->get_id()."\" class=\"track-preview\" title=\"Preview this track\" rel=\"twipsy\"><i class=\"icon-volume-up\"></i></td>
+			".((Session::is_admin() || Session::is_group_user("Music Admin"))? "<td class=\"icon\"><a href=\"delete/".$track->get_id()."\" class=\"track-delete\" title=\"Delete this track\" rel=\"twipsy\"><i class=\"icon-remove-sign\"></td>" : "")."
 		</tr>");
 	}
 	echo("</table>");
@@ -91,14 +94,11 @@ if($tracks) {
 	if($query) {
 		echo("<h2>Sorry, no results for ".$query."</h2>");
 		echo("<h3>Try a more generic search term.</h3>");
-	} else {
-		echo("<h3>Enter keywords below to search for tracks:</h3>
-		<form action=\"".SITE_LINK_REL."music/search\" method=\"GET\">
-			<div class=\"clearfix\">
-        		<input type=\"text\" placeholder=\"Search Tracks\" name=\"q\">
-        		<input type=\"submit\" class=\"btn primary\" value=\"Search\">
-        	</div>
-        </form>");
-	}
+	} 
+	echo("<h3>Enter keywords below to search for tracks:</h3>
+	<form action=\"".SITE_LINK_REL."music/search\" method=\"GET\" class=\"form-inline\">
+		<input type=\"text\" placeholder=\"Search Tracks\" name=\"q\">
+       	<input type=\"submit\" class=\"btn primary\" value=\"Search\">
+    </form>");
 }
 ?>

@@ -1,9 +1,6 @@
-table .icon { width: 16px; }
 table .artist { width: 150px; }
 table .title { width: 250px; }
 table .album { width: 200px; }
 table .length { width: 52px; }
 
-.hover-info { display: none; }
-
-.keyword { float: right; margin-right: 46px; margin-top: 6px; }
+.keyword { float: right; margin-right: 6px; margin-top: 6px; }

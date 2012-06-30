@@ -9,7 +9,7 @@ class Session{
 		return self::$data['user'];
 	}
 	public static function is_developer(){
-		return self::is_group_user('developer');
+		return self::is_group_user('Developers');
 	}
 	public static function is_firstlogin(){
 		return self::$data['lastlogin']==0;
@@ -20,7 +20,7 @@ class Session{
 		else return false;
 	}
 	public static function is_admin(){
-		return (self::is_group_user("admin") || self::is_developer());
+		return (self::is_group_user('Administrators') || self::is_developer());
 	}
 	public static function get_username(){		return self::$data['username'];		}
 	public static function get_id(){		return self::$data['id'];		}
@@ -34,7 +34,7 @@ class Session{
 	public static function get_groups(){
 		if(!self::$data['user']) return array();
 		if(!isset(self::$groups)){
-			$result = DigiplayDB::query("SELECT web_groups.*,web_users_groups.* FROM web_groups INNER JOIN web_users_groups USING (groupid) WHERE username = '".self::$data['username']."' ORDER BY web_groups.group");
+			$result = DigiplayDB::query("SELECT groups.*,usersgroups.* FROM groups INNER JOIN usersgroups USING usersgroups.groupid ON groups.id WHERE usersgroups.userid = '".self::$data['id']."' ORDER BY groups.id");
 			self::$groups = array();
 			if(pg_num_rows($result)>0){
 				while($object = pg_fetch_object($result,null,"Group"))
@@ -61,10 +61,12 @@ class Session{
 	}
 
 	public static function login($username,$password){
-		$local_user = pg_fetch_assoc(DigiplayDB::query("SELECT * FROM users WHERE username = '".$username."' AND password = '".md5($password)."';"));
-		if($local_user) {
-			self::$data["user"] = true;
-			self::$data["id"] = $local_user["id"];
+		if(Config::get_param("auth_method") != "LDAP") {
+			$local_user = pg_fetch_assoc(DigiplayDB::query("SELECT * FROM users WHERE username = '".$username."' AND password = '".md5($password)."';"));
+			if($local_user) {
+				self::$data["user"] = true;
+				self::$data["id"] = $local_user["id"];
+			} else return false;
 		} else {
 			$ldap_instance = new LDAP;
 			if(!$ldap_instance->login($username, $password)) return false;
@@ -78,14 +80,12 @@ class Session{
 			}
 		}
 		if(self::$data["id"]) {
-			$result = DigiplayDB::query("SELECT * FROM web_users WHERE id = ".self::$data['id'].";");
+			$result = DigiplayDB::query("SELECT val FROM usersconfigs WHERE userid = ".self::$data['id']." AND configid = 3;");
 			if(pg_num_rows($result)==1){
-				$pg_data = pg_fetch_assoc($result);
-				self::$data['lastlogin']	= $pg_data['lastlogin'];
-				self::$data['nick']			= $pg_data['nick'];
-				DigiplayDB::query("UPDATE web_users SET lastlogin = '".time()."' WHERE id = '".self::$data['id']."'");				
+				self::$data['lastlogin'] = pg_fetch_result($result,0);
+				DigiplayDB::query("UPDATE usersconfigs SET val = '".time()."' WHERE userid = ".self::$data['id']." AND configid = 3;");
 			}else{
-				DigiplayDB::query("INSERT INTO web_users (id,first_name,surname,lastlogin) VALUES (".self::$data['id'].",'".self::$data['first_name']."','".pg_escape_string(self::$data['surname'])."',".time().");");
+				DigiplayDB::query("INSERT INTO usersconfigs (userid,configid,val) VALUES (".self::$data['id'].",3,'".time()."');");
 			}
 			return true;
 		} else {

@@ -1,6 +1,7 @@
 <?php
 class MainTemplate implements Template{
 	protected static $sidebar;
+	protected static $menu;
 	protected static $subtitle;
 	protected static $masthead;
 	protected static $summary;
@@ -16,6 +17,9 @@ class MainTemplate implements Template{
 	public static function set_sidebar($sidebar) {
 		self::$sidebar = $sidebar;
 	}
+	public static function set_menu($menu) {
+		self::$menu = $menu;
+	}
 	public static function print_page($content){
 		if(strlen(SITE_PATH)>0){
 			$sitePathArray = explode("/",SITE_PATH);
@@ -24,6 +28,7 @@ class MainTemplate implements Template{
 				if(file_exists($file)){
 					include($file);
 					MainTemplate::set_sidebar(sidebar());
+					MainTemplate::set_menu(menu());
 				}
 			}
 			unset($sitePathArray,$i,$file);
@@ -54,11 +59,18 @@ class MainTemplate implements Template{
 		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/jquery-1.7.1.min.js\"></script>
 		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-modal.js\"></script>
 		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-buttons.js\"></script>
-		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-twipsy.js\"></script>
+		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-tooltip.js\"></script>
 		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-alerts.js\"></script>
-		<link rel=\"stylesheet/less\" href=\"".SITE_LINK_REL."lib/bootstrap.less\" />
-		<link rel=\"stylesheet\" type=\"text/css\" href=\"".SITE_LINK_REL."css/dps.css\" />
-		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/less-1.1.5.min.js\"></script>";
+		<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/bootstrap-transition.js\"></script>
+		<link rel=\"stylesheet\" href=\"".SITE_LINK_REL."css/bootstrap.css\" />";
+	if(count(Output::get_less_stylesheets())>0) {
+		foreach(Output::get_less_stylesheets() AS $src){
+			$return .= "\n	<link href=\"".$src."\" rel=\"stylesheet/less\"/>";
+		}
+		$return .= "<script type=\"text/javascript\" src=\"".SITE_LINK_REL."js/less-1.1.5.min.js\"></script>";
+	}
+
+	$return .="	<link rel=\"stylesheet\" type=\"text/css\" href=\"".SITE_LINK_REL."css/dps.css\" />";
 	if(count(Output::get_stylesheets())>0)
 		foreach(Output::get_stylesheets() AS $src){
 			$return .= "\n	<link href=\"".$src."\" rel=\"stylesheet\" type=\"text/css\"/>";
@@ -76,21 +88,76 @@ class MainTemplate implements Template{
 	$return .= "
 	<script type=\"text/javascript\">
 		$(function () {
-			$('a[rel=\"twipsy\"]').twipsy();
+			$('a[rel=\"twipsy\"]').tooltip();
 			$('.alert-message').alert();
+			$(\"input.search-query\").keyup(function(){
+				var value=this.value;
+				var searchbox = this;
+    			setTimeout(function(){
+          			if (searchbox.value == value) {
+                		if(searchbox.value.length < 3) {
+     						$(\"ul#quick-search\").slideUp(200,function(){
+        						return false;
+      						});
+    					} else {
+     						$.ajax({
+        						type: \"GET\",
+        						url: \"".SITE_LINK_REL."ajax/json-search.php?q=\"+searchbox.value,
+        						dataType: \"json\",
+        						success: function(data){
+          							if(data.length < 1){
+        								$(\"ul#quick-search\").slideUp(200);
+        							} else {
+            							var output_html = '';
+            							$.each(data, function(i, val) {
+            								output_html += '<li class=\"nav-header\">'+val.title+'</li>';
+              								$.each(val.data, function(i, data) {
+              									if(typeof(data.by) == \"undefined\") {
+              										output_html += '<li><a href=\"'+data.href+'\"><b>'+data.title+'</b></a></li>'
+              									} else {
+              										output_html += '<li><a href=\"'+data.href+'\"><b>'+data.title+'</b> by '+data.by+'</a></li>'
+              									}
+              								});
+											output_html += '<li><em><a href=\"'+val.href+'\">Full Search...</a></em></li>';
+            							});
+									
+            							$(\"ul#quick-search\").html(output_html);
+            							$(\"ul#quick-search\").slideDown(200);
+          							}
+        						}
+      						});
+						}
+    				}
+    			},250);
+  			});
+			$('#quick-search').click(function (e) {
+    			e.stopPropagation();
+			});
+			$('input.search-query').click(function (e) {
+				e.stopPropagation();
+				if($('ul#quick-search').children().length > 0) {
+					$('ul#quick-search').slideDown(200);
+				}
+			});
+			$(document).click(function() {
+    			$('#quick-search').slideUp(200);
+			});
 		});
 	</script>
 </head> 
 	<body> 
-		<div class=\"topbar\">
-			<div class=\"topbar-inner\">
+		<div class=\"navbar navbar-fixed-top\">
+			<div class=\"navbar-inner\">
 				<div class=\"container\">
-					<a class=\"brand\" href=\"".SITE_LINK_REL."\">Digiplay</a>"
+				<a class=\"brand\" href=\"".SITE_LINK_REL."\">Digiplay</a>"
 					.$main_menu->output(SITE_LINK_REL,6,"nav");
 					if(Session::is_user()) { $return .= "
-					<form class=\"pull-right\" action=\"".SITE_LINK_REL."music/search\" method=\"GET\">
-            			<input type=\"text\" placeholder=\"Search Tracks\" name=\"q\">
-	          		</form>"; }
+					<ul class=\"nav\">
+						<form class=\"navbar-search pull-right\" action=\"".SITE_LINK_REL."music/search\" method=\"GET\">
+            				<input type=\"text\" class=\"search-query\" placeholder=\"Search Tracks\" name=\"q\" autocomplete=\"off\">
+            				</form>
+	          			<ul id=\"quick-search\" class=\"dropdown-menu\"></ul>
+	          		</ul>"; }
           			$return .= "
 				</div>
 			</div>
@@ -133,17 +200,27 @@ class MainTemplate implements Template{
 
 	$return .= "
 			<div class=\"row\">";
-	if (isset(self::$sidebar)){
+	if (isset(self::$sidebar) || isset(self::$menu)){
 		$return .= "
-				<div class=\"span4\">
-					<div class=\"well\">".
+			<div class=\"span3\">";
+		if(isset(self::$menu)) {
+			$return .= "	
+					<div class=\"well\" style=\"padding: 8px 0; margin-bottom: 0;\">".
+					self::$menu."
+					</div>";
+		}
+		if(isset(self::$sidebar)) {
+			$return .= "	
+					<div style=\"padding: 19px;\">".
 					self::$sidebar."
-					</div>
-				</div>
-				<div class=\"span12\">";
+					</div>";
+		}
+		$return .= "
+			</div>
+			<div class=\"span9\">";
 	} else {
 		$return .= "
-				<div class=\"span16\">";
+				<div class=\"span12\">";
 	}
 	
 	$return .= $content;
@@ -155,16 +232,16 @@ class MainTemplate implements Template{
 
 	if(Session::is_user())
 		$return .= "
-		<div class=\"modal hide fade\" id=\"logout-modal\">
+		<div class=\"modal fade\" id=\"logout-modal\">
 			<div class=\"modal-header\">
-				<a class=\"close\" href=\"#\">&times;</a>
+				<a class=\"close\" data-dismiss=\"modal\">&times;</a>
 				<h3>Log out?</h3>
 			</div>
 			<div class=\"modal-body\">
 				You'll lose any unsaved changes on this page.
 			</div>
 			<div class=\"modal-footer\">
-				<a class=\"btn primary\" href=\"".SITE_LINK_REL."ajax/logout\">Yes, log out</a>
+				<a class=\"btn btn-primary\" href=\"".SITE_LINK_REL."ajax/logout\">Yes, log out</a>
 			</div>
 		</div>";
 
@@ -175,9 +252,9 @@ class MainTemplate implements Template{
 					<a href=\"".SITE_LINK_REL."\"><img src=\"".SITE_LINK_REL."images/template/footer_logo.png\" alt=\"RaW 1251AM\" /></a> 
 				</p>
 				<p>";
-	if(Session::is_user()) $return .= "Logged in as ".Session::get_username().". <a href=\"".SITE_LINK_REL."ajax/logout\" data-controls-modal=\"logout-modal\" data-backdrop=\"true\" data-keyboard=\"true\">Logout</a><br />";
+	if(Session::is_user()) $return .= "Logged in as ".Session::get_username().". <a href=\"".SITE_LINK_REL."ajax/logout\" data-toggle=\"modal\" data-target=\"#logout-modal\" data-backdrop=\"true\" data-keyboard=\"true\">Logout</a><br />";
 	else $return .= "Not logged in<br />";				
-	$return .= "Copyright &copy; 2011 Radio Warwick
+	$return .= "Copyright &copy; 2011-12 Radio Warwick
 				</p>
 			</div>
 		</footer>

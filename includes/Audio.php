@@ -48,7 +48,7 @@ class Audio {
 		$time_str .= ($time_arr["seconds"])? sprintf('%02d',$time_arr["seconds"])."s " : "00s ";
 		return $time_str;
 	}
-
+	
 	public function get_waveform_png(){
 		$md5 = $this->get_md5();
 		$fl = substr($md5, 0, 1);
