@@ -61,7 +61,7 @@ if(jQuery) (function($){
 				
 				function bindTree(t) {
 					$(t).find('LI A').bind(o.folderEvent, function() {
-						if( $(this).parent().hasClass('directory') ) {
+						//if( $(this).parent().hasClass('directory') ) {
 							if( $(this).parent().hasClass('collapsed') ) {
 								// Expand
 								if( !o.multiFolder ) {
@@ -69,16 +69,16 @@ if(jQuery) (function($){
 									$(this).parent().parent().find('LI.directory').removeClass('expanded').addClass('collapsed');
 								}
 								$(this).parent().find('UL').remove(); // cleanup
-								showTree( $(this).parent(), $(this).attr('rel') );
+								showTree( $(this).parent(), $(this).attr('data-dps-id') );
 								$(this).parent().removeClass('collapsed').addClass('expanded');
 							} else {
 								// Collapse
 								$(this).parent().find('UL').slideUp({ duration: o.collapseSpeed, easing: o.collapseEasing });
 								$(this).parent().removeClass('expanded').addClass('collapsed');
 							}
-						} else {
-							h($(this).attr('rel'));
-						}
+						//} else {
+							h($(this).attr('data-dps-id'), $(this).attr('data-dps-type'));
+						//}
 						return false;
 					});
 					// Prevent A from triggering the # on non-click events
