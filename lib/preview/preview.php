@@ -12,7 +12,7 @@ ob_end_flush();
 //echo $audio->get_mp3();
 		$md5 = $audio->get_md5();
 		$fl = substr($md5, 0, 1);
-$command = "/usr/local/bin/lame --silent -r -m s --bitwidth 16 -s 44.1 -b 48 -q 9 -c --id3v1-only --tt \"Track Preview\" --ta \"Digiplay\" --tl \"Digiplay Music Database\" ".$audio->get_archive()->get_localpath()."/".$fl."/".$md5." -";
+$command = "/usr/local/bin/lame --silent -r -m f --bitwidth 16 -s 44.1 -b 48 -q 9 -c --noreplaygain --id3v1-only --tt \"Track Preview\" --ta \"Digiplay\" --tl \"Digiplay Music Database\" ".$audio->get_archive()->get_localpath()."/".$fl."/".$md5." -";
 
 $handle = popen($command, 'r');
 while(
