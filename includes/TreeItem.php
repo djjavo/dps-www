@@ -1,5 +1,5 @@
 <?php
-class FileFolder {
+class TreeItem {
 	private $id;
 	private $parent;
 	private $name;
@@ -14,6 +14,6 @@ class FileFolder {
 	public function get_username() { return $this->username; }
 	public function get_permissions() { return $this->permissions; }
 
-	public function get_children() { return FilesFolders::get_by_parent($this->id); }
+	public function get_children() { return TreeItems::get_by_parent($this->id); }
 }
 ?>
